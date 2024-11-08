@@ -1,6 +1,10 @@
 package main
 
 import (
+	"api/internal/data"
+	"api/internal/data/jsonlog"
+	"api/internal/mailer"
+	"api/internal/vcs"
 	"context"
 	"database/sql"
 	"expvar"
@@ -13,10 +17,6 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"sulfur.test.net/internal/data"
-	"sulfur.test.net/internal/data/jsonlog"
-	"sulfur.test.net/internal/mailer"
-	"sulfur.test.net/internal/vcs"
 )
 
 var (
