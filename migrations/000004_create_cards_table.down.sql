@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS cards,basic_info,case_details,person_details,investigation_details,organizer_details,business_details,defender_details;

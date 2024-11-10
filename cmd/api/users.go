@@ -8,6 +8,41 @@ import (
 	"time"
 )
 
+// USE THIS FOR HOME PAGE
+func (app *application) getUserHomeInfo(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email string `json:"email"`
+	}
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.serverErrorRespone(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidateEmail(v, input.Email)
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	user, err := app.models.Users.GetByEmail(input.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrNoRecordFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorRespone(w, r, err)
+		}
+		return
+	}
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+	if err != nil {
+		app.serverErrorRespone(w, r, err)
+	}
+}
+
 func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Password       string `json:"password"`
