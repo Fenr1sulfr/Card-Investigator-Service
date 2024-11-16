@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS defenders,approvals,analyst_calls,investigations,persons,conclusions,case_details;
