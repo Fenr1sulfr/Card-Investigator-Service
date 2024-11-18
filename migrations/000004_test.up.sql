@@ -54,5 +54,6 @@ CREATE TABLE cards (
     investigation_details_id INT REFERENCES investigation_details(id),
     organizer_details_id INT REFERENCES organizer_details(id),
     business_details_id INT REFERENCES business_details(id),
-    defender_details_id INT REFERENCES defender_details(id)
+    defender_details_id INT REFERENCES defender_details(id),
+    version integer NOT NULL DEFAULT 1
 );
