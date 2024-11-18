@@ -24,6 +24,7 @@ type User struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Name      string    `json:"name"`
+	Surname   string    `json:"surname"`
 	Email     string    `json:"email"`
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
@@ -86,8 +87,8 @@ type UserModel struct {
 
 func (m UserModel) Insert(user *User) error {
 	query := `
-	INSERT INTO users (name,email,password_hash,activated)
-	VALUES ($1,$2,$3,$4)
+	INSERT INTO users (name,surname,email,password_hash,activated)
+	VALUES ($1,$2,$3,$4,$5)
 	RETURNING id,created_at,version
 	`
 	args := []any{user.Name, user.Email, user.Password.hash, user.Activated}
@@ -107,7 +108,7 @@ func (m UserModel) Insert(user *User) error {
 
 func (m UserModel) GetByEmail(email string) (*User, error) {
 	query := `
-	SELECT id,created_at, name,email,password_hash,activated,version
+	SELECT id,created_at, name,surname,email,password_hash,activated,version
 	FROM users
 	WHERE email = $1
 	`
@@ -118,6 +119,7 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 		&user.ID,
 		&user.CreatedAt,
 		&user.Name,
+		&user.Surname,
 		&user.Email,
 		&user.Password.hash,
 		&user.Activated,
@@ -137,12 +139,13 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 func (m UserModel) Update(user *User) error {
 	query := `
 	UPDATE users
-	SET name = $1, email = $2, password_hash=$3, activated = $4, version=version+1
+	SET name = $1,surname = $2, mail = $3, password_hash=$4, activated = $5, version=version+1
 	WHERE id = $5 AND version = $6
 	RETURNING version
 	`
 	args := []any{
 		user.Name,
+		user.Surname,
 		user.Email,
 		user.Password.hash,
 		user.Activated,
@@ -167,7 +170,7 @@ func (m UserModel) Update(user *User) error {
 
 func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
-	query := `SELECT users.id, users.created_at,users.name,users.email,users.password_hash,users.activated,users.version
+	query := `SELECT users.id, users.created_at,users.name,users.surname,users.email,users.password_hash,users.activated,users.version
 			FROM users
 			INNER JOIN tokens
 			ON users.id=tokens.user_id
@@ -183,6 +186,7 @@ func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error)
 		&user.ID,
 		&user.CreatedAt,
 		&user.Name,
+		&user.Surname,
 		&user.Email,
 		&user.Password.hash,
 		&user.Activated,
