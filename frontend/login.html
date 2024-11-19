@@ -32,7 +32,7 @@
 
 <body>
     <div class="container vh-100 d-flex justify-content-center align-items-center flex-column">
-        <h1>AITU Project Challenge</h1>
+        <h1 id="logo">AITU Project Challenge</h1>
         <div class="col-md-5">
             <!-- Форма входа -->
             <form id="loginForm" novalidate>
@@ -102,19 +102,36 @@
         const toLogin = document.getElementById('toLogin');
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
+        const logo = document.getElementById('logo');
 
         toRegister.addEventListener('click', function(event) {
             event.preventDefault();
-            loginForm.style.display = 'none';
-            registerForm.style.display = 'block';
-            document.querySelector('.container').classList.remove('vh-100');
+            loginForm.classList.add("animated", "fadeOut");
+            logo.classList.add("animated", "fadeOut");
+            setTimeout(() => {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                loginForm.classList.remove("animated", "fadeOut");
+                registerForm.classList.add("animated", "fadeIn");
+                logo.classList.remove("animated", "fadeOut");
+                logo.classList.add("animated", "fadeIn");
+                document.querySelector('.container').classList.remove('vh-100');
+            }, 500);
         });
 
         toLogin.addEventListener('click', function(event) {
             event.preventDefault();
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'block';
-            document.querySelector('.container').classList.add('vh-100');
+            registerForm.classList.add("animated", "fadeOut");
+            logo.classList.add("animated", "fadeOut");
+            setTimeout(() => {
+                registerForm.style.display = 'none';
+                loginForm.style.display = 'block';
+                registerForm.classList.remove("animated", "fadeOut");
+                loginForm.classList.add("animated", "fadeIn");
+                logo.classList.remove("animated", "fadeOut");
+                logo.classList.add("animated", "fadeIn");
+                document.querySelector('.container').classList.add('vh-100');
+            }, 500);
         });
 
         // Валидация формы входа
