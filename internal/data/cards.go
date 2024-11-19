@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -20,67 +21,69 @@ type Card struct {
 
 // Basic information about the card.
 type BasicInfo struct {
-	RegistrationNumber string    // Регистрационный номер (генерируется системой)
-	CreationDate       time.Time // Дата создания документа (генерируется системой)
-	Region             string    // Регион (справочник)
+	RegistrationNumber string    `json:"registry_number"` // Регистрационный номер (генерируется системой)
+	CreationDate       time.Time `json:"creation_date"`   // Дата создания документа (генерируется системой)
+	Region             string    `json:"region"`          // Регион (справочник)
 }
 
 // Details about the specific case.
 type CaseDetails struct {
-	CaseNumber          string    // Номер УД (обязательное поле, ручной ввод, ФЛК 15 цифр)
-	RegistrationDate    time.Time // Дата регистрации дела (автоподтягивание по номеру дела)
-	CriminalCodeArticle string    // Статья УК (автоподтягивание по номеру дела)
-	CaseDecision        string    // Решение по делу (автоподтягивание по номеру дела)
-	CaseSummary         string    // Краткая фабула (автоподтягивание по номеру дела)
-	RelationToEvent     string    // Отношение вызывающего к событию и субъекту (ручной ввод)
+	CaseNumber          string    `json:"case_number"`       // Номер УД (обязательное поле, ручной ввод, ФЛК 15 цифр)
+	RegistrationDate    time.Time `json:"registry_date"`     // Дата регистрации дела (автоподтягивание по номеру дела)
+	CriminalCodeArticle string    `json:"criminal_core"`     // Статья УК (автоподтягивание по номеру дела)
+	CaseDecision        string    `json:"case_decision"`     // Решение по делу (автоподтягивание по номеру дела)
+	CaseSummary         string    `json:"case_summary"`      // Краткая фабула (автоподтягивание по номеру дела)
+	RelationToEvent     string    `json:"relation_to_event"` // Отношение вызывающего к событию и субъекту (ручной ввод)
 }
 
 // Information about the person being invited to the investigation.
 type PersonDetails struct {
-	InvitedPersonIIN      string // ИИН вызываемого (обязательное поле, ручной ввод, ФЛК 12 цифр)
-	InvitedPersonFullName string // ФИО вызываемого (автоподтягивание по ИИН вызываемого)
-	InvitedPersonPosition string // Должность вызываемого (справочник)
-	OrganizationBINOrIIN  string // БИН/ИИН (обязательное поле, ручной ввод со стороны заполняющего, ФЛК 12 цифр)
-	Workplace             string // Место работы (автоподтягивание по БИН/ИИН от заполняющего)
-	InvitedPersonStatus   string // Статус по делу вызываемого (справочник)
+	InvitedPersonIIN      string `json:"invited_person_iin"`       // ИИН вызываемого (обязательное поле, ручной ввод, ФЛК 12 цифр)
+	InvitedPersonFullName string `json:"invited_person_full_name"` // ФИО вызываемого (автоподтягивание по ИИН вызываемого)
+	InvitedPersonPosition string `json:"invited_person_position"`  // Должность вызываемого (справочник)
+	OrganizationBINOrIIN  string `json:"organiztion_bin_or_iin"`   // БИН/ИИН (обязательное поле, ручной ввод со стороны заполняющего, ФЛК 12 цифр)
+	Workplace             string `json:"workplace"`                // Место работы (автоподтягивание по БИН/ИИН от заполняющего)
+	InvitedPersonStatus   string `json:"invited_person_status"`    // Статус по делу вызываемого (справочник)
 }
 
 // Details specific to the planned investigation.
 type InvestigationDetails struct {
-	PlannedInvestigativeActions string    // Планируемые следственные действия (обязательное поле, ручной ввод)
-	ScheduledDateTime           time.Time // Дата и время проведения (календарный и временной выбор)
-	Location                    string    // Место проведения (справочник)
-	TypeOfInvestigation         string    // Виды планируемого следствия (справочник)
-	ExpectedOutcome             string    // Результат от планируемого следственного действия (обязательное поле, ручной ввод)
+	PlannedInvestigativeActions string    `json:"planned_investigation_actions"` // Планируемые следственные действия (обязательное поле, ручной ввод)
+	ScheduledDateTime           time.Time `json:"scheduled_date_time"`           // Дата и время проведения (календарный и временной выбор)
+	Location                    string    `json:"location"`                      // Место проведения (справочник)
+	TypeOfInvestigation         string    `json:"type_of_investigation"`         // Виды планируемого следствия (справочник)
+	ExpectedOutcome             string    `json:"expected_outcome"`              // Результат от планируемого следственного действия (обязательное поле, ручной ввод)
 }
 
 // Information about the organizer or investigator of the case.
 type OrganizerDetails struct {
-	Investigator string // Следователь (автоподтягивание с личного кабинета)
+	Investigator string `json:"investigator"` // Следователь (автоподтягивание с личного кабинета)
 }
 
 // Business-related details of the investigation.
 type BusinessDetails struct {
-	IsBusinessRelated         bool   // Относится ли к бизнесу (справочник)
-	PensionBINOrIIN           string // БИН/ИИН (пенсионные отчисления) - автоподтягивание последнего места работы
-	PensionWorkplace          string // Место работы (пенсионные отчисления) - автоподтягивание последнего места работы
-	EntrepreneurParticipation string // Обоснование и необходимость участия предпринимателя (обязательное поле, ручной ввод)
+	IsBusinessRelated         bool   `json:"is_business_related"`        // Относится ли к бизнесу (справочник)
+	PensionBINOrIIN           string `json:"peron_bin_or_iin"`           // БИН/ИИН (пенсионные отчисления) - автоподтягивание последнего места работы
+	PensionWorkplace          string `json:"pension_workplace"`          // Место работы (пенсионные отчисления) - автоподтягивание последнего места работы
+	EntrepreneurParticipation string `json:"enterpreneur_participation"` // Обоснование и необходимость участия предпринимателя (обязательное поле, ручной ввод)
 }
 
 // Information about the defender, if applicable.
 type DefenderDetails struct {
-	DefenderIIN      string // ИИН защитника (ручной ввод, ФЛК 12 цифр)
-	DefenderFullName string // ФИО защитника (автоподтягивание по ИИН защитника)
+	DefenderIIN      string `json:"defender_iin"`       // ИИН защитника (ручной ввод, ФЛК 12 цифр)
+	DefenderFullName string `json:"defender_full_name"` // ФИО защитника (автоподтягивание по ИИН защитника)
 }
 
 type CardsModel struct {
 	DB *sql.DB
 }
 
+var ErrNotRegNumber = errors.New("This is not a registry number")
+
 // TODO:ADDING VALIDATOR
 func unFormatCardNumber(cardNumber string) (int, error) {
 	if len(cardNumber) < 3 && cardNumber[:2] != "Z-" {
-		return -1
+		return -1, ErrNotRegNumber
 	}
 	atoi, err := strconv.Atoi(cardNumber[2:])
 	if err != nil {
@@ -178,7 +181,7 @@ func (m CardsModel) Get(regNumber string) (*Card, error) {
 		return nil, err
 	}
 	var card Card
-	ctx, cancel := contex.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	query := `
 		SELECT  
@@ -189,7 +192,7 @@ func (m CardsModel) Get(regNumber string) (*Card, error) {
     case_details.criminal_code_article, 
     case_details.case_decision, 
     case_details.case_summary, 
-    case_details.relation_to_event, 
+    case_details.relation_to_event, -
     person_details.invited_person_iin, 
     person_details.invited_person_full_name, 
     person_details.invited_person_position, 
@@ -218,5 +221,41 @@ LEFT JOIN business_details ON cards.business_details_id = business_details.id
 LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id;
 	WHERE cards.id=$1
 	`
-	err := m.DB.QueryRowContext(ctx, query, id).Scan()
+	err = m.DB.QueryRowContext(ctx, query, id).Scan(
+		&card.BasicInfo.CreationDate,
+		&card.BasicInfo.Region,
+		&card.CaseDetails.CaseNumber,
+		&card.CaseDetails.RegistrationDate,
+		&card.CaseDetails.CriminalCodeArticle,
+		&card.CaseDetails.CaseDecision,
+		&card.CaseDetails.CaseSummary,
+		&card.CaseDetails.RelationToEvent,
+		&card.PersonDetails.InvitedPersonIIN,
+		&card.PersonDetails.InvitedPersonFullName,
+		&card.PersonDetails.InvitedPersonPosition,
+		&card.PersonDetails.OrganizationBINOrIIN,
+		&card.PersonDetails.Workplace,
+		&card.PersonDetails.InvitedPersonStatus,
+		&card.InvestigationDetails.PlannedInvestigativeActions,
+		&card.InvestigationDetails.ScheduledDateTime,
+		&card.InvestigationDetails.Location,
+		&card.InvestigationDetails.TypeOfInvestigation,
+		&card.InvestigationDetails.ExpectedOutcome,
+		&card.OrganizerDetails.Investigator,
+		&card.BusinessDetails.IsBusinessRelated,
+		&card.BusinessDetails.PensionBINOrIIN,
+		&card.BusinessDetails.PensionWorkplace,
+		&card.BusinessDetails.EntrepreneurParticipation,
+		&card.DefenderDetails.DefenderIIN,
+		&card.DefenderDetails.DefenderFullName,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNoRecordFound
+		default:
+			return nil, err
+		}
+	}
+	return &card, nil
 }
