@@ -10,24 +10,15 @@ import (
 
 // USE THIS FOR HOME PAGE
 func (app *application) getUserHomeInfo(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Email string `json:"email"`
-	}
-	err := app.readJSON(w, r, &input)
-	if err != nil {
-		app.serverErrorRespone(w, r, err)
-		return
-	}
-
+	email := app.readEmailParam(r)
 	v := validator.New()
-
-	data.ValidateEmail(v, input.Email)
+	data.ValidateEmail(v, email)
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	user, err := app.models.Users.GetByEmail(input.Email)
+	user, err := app.models.Users.GetByEmail(email)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrNoRecordFound):
@@ -140,7 +131,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-	err = app.models.Permissions.AddForUser(user.ID, "movies:read")
+	err = app.models.Permissions.AddForUser(user.ID, "card:read")
 	if err != nil {
 		app.serverErrorRespone(w, r, err)
 		return

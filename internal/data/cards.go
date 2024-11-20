@@ -174,6 +174,7 @@ func (m CardsModel) Insert(c Card) error {
 	}
 	return nil
 }
+
 // TODO returning id to send reg number
 func (m CardsModel) Get(regNumber string) (*Card, error) {
 	id, err := unFormatCardNumber(regNumber)
@@ -181,6 +182,7 @@ func (m CardsModel) Get(regNumber string) (*Card, error) {
 		return nil, err
 	}
 	var card Card
+	card.BasicInfo.RegistrationNumber = regNumber
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	query := `
