@@ -174,7 +174,7 @@ func (m CardsModel) Insert(c Card) error {
 	}
 	return nil
 }
-
+// TODO returning id to send reg number
 func (m CardsModel) Get(regNumber string) (*Card, error) {
 	id, err := unFormatCardNumber(regNumber)
 	if err != nil {
