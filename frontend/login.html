@@ -161,7 +161,7 @@
             }
 
             if (valid) {
-                // Отправка формы на сервер
+                window.location.replace('profile.html')
             }
         }
 
@@ -219,12 +219,15 @@
             if (password.value !== confirmPassword.value) {
                 showError(confirmPassword, 'Пароли не совпадают.');
                 valid = false;
+            } else if (password.value.trim() === '') {
+                showError(confirmPassword, 'Поле не может быть пустым.')
+                valid = false;
             } else {
                 showSuccess(confirmPassword);
             }
 
             if (valid) {
-                // Отправка формы на сервер
+                window.location.replace('profile.html');
             }
         }
 
