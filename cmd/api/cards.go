@@ -90,7 +90,10 @@ func (app *application) createCard(w http.ResponseWriter, r *http.Request) {
 		BusinessDetails:      input.BusinessDetails,
 		DefenderDetails:      input.DefenderDetails,
 	}
-	err = app.models.Cards.Insert(*card)
+
+	regNum, creationDate, err := app.models.Cards.Insert(*card)
+	card.BasicInfo.RegistrationNumber = regNum
+	card.BasicInfo.CreationDate = creationDate
 	if err != nil {
 		app.serverErrorRespone(w, r, err)
 		return
