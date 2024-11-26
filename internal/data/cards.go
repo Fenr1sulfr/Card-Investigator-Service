@@ -263,8 +263,8 @@ LEFT JOIN person_details ON cards.person_details_id = person_details.id
 LEFT JOIN investigation_details ON cards.investigation_details_id = investigation_details.id
 LEFT JOIN organizer_details ON cards.organizer_details_id = organizer_details.id
 LEFT JOIN business_details ON cards.business_details_id = business_details.id
-LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id;
-	WHERE cards.id=$1
+LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id
+	WHERE cards.id=$1;
 	`
 	err = m.DB.QueryRowContext(ctx, query, id).Scan(
 		&card.BasicInfo.CreationDate,
