@@ -1,12 +1,14 @@
 package data
 
 import (
+	"api/internal/data/validator"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
+	"unicode"
 )
 
 type Card struct {
@@ -78,7 +80,22 @@ type CardsModel struct {
 	DB *sql.DB
 }
 
-var ErrNotRegNumber = errors.New("This is not a registry number")
+var ErrNotRegNumber = errors.New("this is not a registry number")
+
+func isAllDigits(s string) bool {
+	for _, char := range s {
+		if !unicode.IsDigit(char) {
+			return false
+		}
+	}
+	return true
+}
+
+func ValidateCards(v *validator.Validator, card *Card) {
+	v.Check(len(card.CaseDetails.CaseNumber) == 15 && isAllDigits(card.CaseDetails.CaseNumber), "case number", "must be 15 digits")
+	v.Check(len(card.PersonDetails.InvitedPersonIIN) == 12 && isAllDigits(card.PersonDetails.InvitedPersonIIN), "IIN", "must be 12 digits")
+
+}
 
 // TODO:ADDING VALIDATOR
 func unFormatCardNumber(cardNumber string) (int, error) {
@@ -177,46 +194,99 @@ func (m CardsModel) Insert(c Card) (string, time.Time, error) {
 	return formatCardNumber(regNumber), creation_date, nil
 }
 
-// func (m CardsModel) GetAllByRegion(region string) (*[]Card, error){
-// 	query:=`
-// 			SELECT
-//     cards.creation_date,
-//     cards.region,
-//     case_details.case_number,
-//     case_details.registration_date,
-//     case_details.criminal_code_article,
-//     case_details.case_decision,
-//     case_details.case_summary,
-//     case_details.relation_to_event, -
-//     person_details.invited_person_iin,
-//     person_details.invited_person_full_name,
-//     person_details.invited_person_position,
-//     person_details.organization_bin_or_iin,
-//     person_details.workplace,
-//     person_details.invited_person_status,
-//     investigation_details.planned_investigative_actions,
-//     investigation_details.scheduled_date_time,
-//     investigation_details.location,
-//     investigation_details.type_of_investigation,
-//     investigation_details.expected_outcome,
-//     organizer_details.investigator,
-//     business_details.is_business_related,
-//     business_details.pension_bin_or_iin,
-//     business_details.pension_workplace,
-//     business_details.entrepreneur_participation,
-//     defender_details.defender_iin,
-//     defender_details.defender_full_name
-// FROM
-//     cards
-// LEFT JOIN case_details ON cards.case_details_id = case_details.id
-// LEFT JOIN person_details ON cards.person_details_id = person_details.id
-// LEFT JOIN investigation_details ON cards.investigation_details_id = investigation_details.id
-// LEFT JOIN organizer_details ON cards.organizer_details_id = organizer_details.id
-// LEFT JOIN business_details ON cards.business_details_id = business_details.id
-// LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id;
-// 	WHERE cards.region=$1
-// 	`
-// }
+
+
+func (m CardsModel) GetAllByRegion(region string) ([]*Card, error) {
+	query := `
+			SELECT
+			cards.id,
+    cards.creation_date,
+    cards.region,
+    case_details.case_number,
+    case_details.registration_date,
+    case_details.criminal_code_article,
+    case_details.case_decision,
+    case_details.case_summary,
+    case_details.relation_to_event, 
+    person_details.invited_person_iin,
+    person_details.invited_person_full_name,
+    person_details.invited_person_position,
+    person_details.organization_bin_or_iin,
+    person_details.workplace,
+    person_details.invited_person_status,
+    investigation_details.planned_investigative_actions,
+    investigation_details.scheduled_date_time,
+    investigation_details.location,
+    investigation_details.type_of_investigation,
+    investigation_details.expected_outcome,
+    organizer_details.investigator,
+    business_details.is_business_related,
+    business_details.pension_bin_or_iin,
+    business_details.pension_workplace,
+    business_details.entrepreneur_participation,
+    defender_details.defender_iin,
+    defender_details.defender_full_name
+FROM
+    cards
+LEFT JOIN case_details ON cards.case_details_id = case_details.id
+LEFT JOIN person_details ON cards.person_details_id = person_details.id
+LEFT JOIN investigation_details ON cards.investigation_details_id = investigation_details.id
+LEFT JOIN organizer_details ON cards.organizer_details_id = organizer_details.id
+LEFT JOIN business_details ON cards.business_details_id = business_details.id
+LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id
+	WHERE cards.region=$1;
+	`
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	rows, err := m.DB.QueryContext(ctx, query, region)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	cards := []*Card{}
+	for rows.Next() {
+		var card Card
+		var RegIntNumberForString int
+		err := rows.Scan(
+			&RegIntNumberForString,
+			&card.BasicInfo.CreationDate,
+			&card.BasicInfo.Region,
+			&card.CaseDetails.CaseNumber,
+			&card.CaseDetails.RegistrationDate,
+			&card.CaseDetails.CriminalCodeArticle,
+			&card.CaseDetails.CaseDecision,
+			&card.CaseDetails.CaseSummary,
+			&card.CaseDetails.RelationToEvent,
+			&card.PersonDetails.InvitedPersonIIN,
+			&card.PersonDetails.InvitedPersonFullName,
+			&card.PersonDetails.InvitedPersonPosition,
+			&card.PersonDetails.OrganizationBINOrIIN,
+			&card.PersonDetails.Workplace,
+			&card.PersonDetails.InvitedPersonStatus,
+			&card.InvestigationDetails.PlannedInvestigativeActions,
+			&card.InvestigationDetails.ScheduledDateTime,
+			&card.InvestigationDetails.Location,
+			&card.InvestigationDetails.TypeOfInvestigation,
+			&card.InvestigationDetails.ExpectedOutcome,
+			&card.OrganizerDetails.Investigator,
+			&card.BusinessDetails.IsBusinessRelated,
+			&card.BusinessDetails.PensionBINOrIIN,
+			&card.BusinessDetails.PensionWorkplace,
+			&card.BusinessDetails.EntrepreneurParticipation,
+			&card.DefenderDetails.DefenderIIN,
+			&card.DefenderDetails.DefenderFullName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		card.BasicInfo.RegistrationNumber = formatCardNumber(RegIntNumberForString)
+		cards = append(cards, &card)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return cards, nil
+}
 
 // TODO returning id to send reg number
 func (m CardsModel) Get(regNumber string) (*Card, error) {

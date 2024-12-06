@@ -4,6 +4,7 @@ import (
 	"api/internal/data"
 	"api/internal/data/jsonlog"
 	"api/internal/mailer"
+	"api/internal/pdfworker"
 	"api/internal/vcs"
 	"context"
 	"database/sql"
@@ -50,11 +51,12 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *jsonlog.Logger
-	models data.Models
-	mailer mailer.Mailer
-	wg     sync.WaitGroup
+	config    config
+	logger    *jsonlog.Logger
+	models    data.Models
+	mailer    mailer.Mailer
+	pdfWorker pdfworker.PdfWorker
+	wg        sync.WaitGroup
 }
 
 func main() {
