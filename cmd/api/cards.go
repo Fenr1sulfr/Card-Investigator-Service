@@ -2,10 +2,39 @@ package main
 
 import (
 	"api/internal/data"
+	"api/internal/data/validator"
 	"errors"
 	"net/http"
 	"time"
 )
+
+
+func (app *application) listCardsByRegion(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		data.Filters
+		region string
+	}
+	v := validator.New()
+	qs := r.URL.Query()
+	input.region = app.readString(qs, "region", "")
+	input.Filters.Page = app.readInt(qs, "page", 1, v)
+	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v)
+	input.Filters.Sort = app.readString(qs, "sort", "id")
+	// if data.ValidateFilters(v, input.Filters); !v.Valid() {
+	// 	app.failedValidationResponse(w, r, v.Errors)
+	// 	return
+	// }
+	cards, err := app.models.Cards.GetAllByRegion(input.region)
+	if err != nil {
+		app.serverErrorRespone(w, r, err)
+		return
+	}
+	err = app.writeJSON(w, http.StatusOK, envelope{"cards": cards}, nil)
+	if err != nil {
+		app.serverErrorRespone(w, r, err)
+	}
+
+}
 
 func (app *application) getCard(w http.ResponseWriter, r *http.Request) {
 
