@@ -91,7 +91,7 @@ func (m UserModel) Insert(user *User) error {
 	VALUES ($1,$2,$3,$4,$5)
 	RETURNING id,created_at,version
 	`
-	args := []any{user.Name, user.Email, user.Password.hash, user.Activated}
+	args := []any{user.Name, user.Surname, user.Email, user.Password.hash, user.Activated}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
@@ -139,8 +139,8 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 func (m UserModel) Update(user *User) error {
 	query := `
 	UPDATE users
-	SET name = $1,surname = $2, mail = $3, password_hash=$4, activated = $5, version=version+1
-	WHERE id = $5 AND version = $6
+	SET name = $1,surname = $2, email = $3, password_hash=$4, activated = $5, version=version+1
+	WHERE id = $6 AND version = $7
 	RETURNING version
 	`
 	args := []any{
