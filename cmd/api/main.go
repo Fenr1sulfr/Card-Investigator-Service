@@ -55,7 +55,7 @@ type application struct {
 	logger    *jsonlog.Logger
 	models    data.Models
 	mailer    mailer.Mailer
-	pdfWorker pdfworker.PdfWorker
+	pdfWorker pdfworker.NewPdfWoker
 	wg        sync.WaitGroup
 }
 
@@ -65,7 +65,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "Api server port")
 	flag.StringVar(&cfg.env, "env", "development", "Enviroment (development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL dsn")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL dsn")
 
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")

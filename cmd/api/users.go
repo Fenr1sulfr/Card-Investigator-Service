@@ -96,6 +96,7 @@ func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name     string `json:"name"`
+		Surname  string `json:"surname"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
@@ -131,7 +132,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-	err = app.models.Permissions.AddForUser(user.ID, "card:read")
+	err = app.models.Permissions.AddForUser(user.ID, "cards:read", "cards:write")
 	if err != nil {
 		app.serverErrorRespone(w, r, err)
 		return
@@ -146,7 +147,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			"activationToken": token.Plaintext,
 			"userID":          user.ID,
 		}
-		err = app.mailer.Send(user.Email, "user_welcome.tmpl", data)
+		err = app.mailer.Send(user.Email, "user_welcome.html", data)
 		if err != nil {
 			app.logger.PrintError(err, nil)
 		}
