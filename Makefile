@@ -27,3 +27,8 @@ db/migrations/up:
 db/migrations/down:
 	@echo 'Running up migrations...'
 	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} down
+
+.PHONY: build/api
+build/api:
+	@echo 'Building cmd/api...'
+	go build -o=./bin/api ./cmd/api

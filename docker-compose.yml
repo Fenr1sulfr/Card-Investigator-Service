@@ -1,0 +1,36 @@
+version: '3.9'
+services:
+
+  db:
+    image: postgres:15
+    container_name: thirdproject_db
+    environment:
+      POSTGRES_USER: thirdproject
+      POSTGRES_PASSWORD: third3
+      POSTGRES_DB: thirdproject
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    entrypoint: ["migrate", "-path", "/migrations", "-database", "postgres://thirdproject:third3@db:5432/thirdproject?sslmode=disable", "up"]
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    environment:
+      GREENLIGHT_DB_DSN: "postgres://thirdproject:third3@db:5432/thirdproject?sslmode=disable"
+
+volumes:
+  postgres_data:
