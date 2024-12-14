@@ -15,7 +15,7 @@ func (app *application) proccessNotificationFile(w http.ResponseWriter, r *http.
 	var pdfBytes []byte
 	// dateFormat := "02 января 2006 года" // Русский формат для даты
 	// timeFormat := "15:04"               // 24-часовой формат для времени
-	// timeDate := notification.Date.Format(dateFormat)
+	// timeDate := notification.Date.Format(dateFormat)	
 	// timeHours := notification.Date.Format(timeFormat)
 	app.wg.Add(1)
 	app.background(func() {

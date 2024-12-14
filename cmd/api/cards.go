@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-
 func (app *application) listCardsByRegion(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		data.Filters
@@ -26,7 +25,12 @@ func (app *application) listCardsByRegion(w http.ResponseWriter, r *http.Request
 	// }
 	cards, err := app.models.Cards.GetAllByRegion(input.region)
 	if err != nil {
-		app.serverErrorRespone(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrNoRecordFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorRespone(w, r, err)
+		}
 		return
 	}
 	err = app.writeJSON(w, http.StatusOK, envelope{"cards": cards}, nil)
@@ -66,6 +70,7 @@ func (app *application) createCard(w http.ResponseWriter, r *http.Request) {
 			RegistrationNumber string    `json:"registry_number"` // Регистрационный номер (генерируется системой)
 			CreationDate       time.Time `json:"creation_date"`   // Дата создания документа (генерируется системой)
 			Region             string    `json:"region"`          // Регион (справочник)
+			Status             string    `json:"status"`
 		} `json:"basic_info"`
 		CaseDetails struct {
 			CaseNumber          string    `json:"case_number"`       // Номер УД (обязательное поле, ручной ввод, ФЛК 15 цифр)
