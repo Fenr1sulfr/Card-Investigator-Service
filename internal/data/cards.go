@@ -26,6 +26,7 @@ type BasicInfo struct {
 	RegistrationNumber string    `json:"registry_number"` // Регистрационный номер (генерируется системой)
 	CreationDate       time.Time `json:"creation_date"`   // Дата создания документа (генерируется системой)
 	Region             string    `json:"region"`          // Регион (справочник)
+	Status             string    `json:"status"`
 }
 
 // Details about the specific case.
@@ -178,8 +179,8 @@ func (m CardsModel) Insert(c Card) (string, time.Time, error) {
 		tx.Rollback()
 		return "", time.Time{}, err
 	}
-	query = `INSERT INTO cards (region,case_details_id,person_details_id,investigation_details_id,organizer_details_id,business_details_id,defender_details_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, creation_date`
-	args = []any{c.BasicInfo.Region, inputId.caseId, inputId.personId, inputId.investigationId, inputId.organizerId, inputId.businessId, inputId.defenderId}
+	query = `INSERT INTO cards (region,case_details_id,person_details_id,investigation_details_id,organizer_details_id,business_details_id,defender_details_id,status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id, creation_date`
+	args = []any{c.BasicInfo.Region, inputId.caseId, inputId.personId, inputId.investigationId, inputId.organizerId, inputId.businessId, inputId.defenderId, "In work"}
 	var regNumber int
 	var creation_date time.Time
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&regNumber, &creation_date)
@@ -194,14 +195,13 @@ func (m CardsModel) Insert(c Card) (string, time.Time, error) {
 	return formatCardNumber(regNumber), creation_date, nil
 }
 
-
-
 func (m CardsModel) GetAllByRegion(region string) ([]*Card, error) {
 	query := `
 			SELECT
 			cards.id,
     cards.creation_date,
     cards.region,
+	cards.status,
     case_details.case_number,
     case_details.registration_date,
     case_details.criminal_code_article,
@@ -251,6 +251,7 @@ LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id
 			&RegIntNumberForString,
 			&card.BasicInfo.CreationDate,
 			&card.BasicInfo.Region,
+			&card.BasicInfo.Status,
 			&card.CaseDetails.CaseNumber,
 			&card.CaseDetails.RegistrationDate,
 			&card.CaseDetails.CriminalCodeArticle,
@@ -302,6 +303,7 @@ func (m CardsModel) Get(regNumber string) (*Card, error) {
 		SELECT  
     cards.creation_date, 
     cards.region, 
+	cards.status,
     case_details.case_number, 
     case_details.registration_date, 
     case_details.criminal_code_article, 
@@ -339,11 +341,12 @@ LEFT JOIN defender_details ON cards.defender_details_id = defender_details.id
 	err = m.DB.QueryRowContext(ctx, query, id).Scan(
 		&card.BasicInfo.CreationDate,
 		&card.BasicInfo.Region,
+		&card.BasicInfo.Status,
 		&card.CaseDetails.CaseNumber,
 		&card.CaseDetails.RegistrationDate,
 		&card.CaseDetails.CriminalCodeArticle,
 		&card.CaseDetails.CaseDecision,
-		&card.CaseDetails.CaseSummary,
+		&card.CaseDetails.CaseSummary,	
 		&card.CaseDetails.RelationToEvent,
 		&card.PersonDetails.InvitedPersonIIN,
 		&card.PersonDetails.InvitedPersonFullName,

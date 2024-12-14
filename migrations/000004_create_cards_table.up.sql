@@ -55,5 +55,7 @@ CREATE TABLE cards (
     organizer_details_id INT REFERENCES organizer_details(id),
     business_details_id INT REFERENCES business_details(id),
     defender_details_id INT REFERENCES defender_details(id),
+    status text NOT NULL,
     version integer NOT NULL DEFAULT 1
 );
+-- Add status
